@@ -3,6 +3,8 @@ package com.example.androidinvoices.arch.bind
 import com.example.androidinvoices.arch.http.HttpBuilder
 import com.example.androidinvoices.arch.http.HttpClient
 import com.example.androidinvoices.arch.self.SelfShared
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import retrofit2.Converter
@@ -15,8 +17,18 @@ class BindBackend {
 
     @Provides
     @Singleton
-    fun provideConverter(): Converter.Factory {
-        return GsonConverterFactory.create()
+    fun provideGson(): Gson {
+        val builder = GsonBuilder().apply {
+            excludeFieldsWithoutExposeAnnotation()
+        }
+
+        return builder.create()
+    }
+
+    @Provides
+    @Singleton
+    fun provideConverter(gson: Gson): Converter.Factory {
+        return GsonConverterFactory.create(gson)
     }
 
     @Provides
