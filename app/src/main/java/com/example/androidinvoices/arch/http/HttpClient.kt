@@ -16,16 +16,16 @@ interface HttpClient {
     fun getCustomers(): Call<List<CustomerMinimalSerializer>>
 
     @GET("$CUSTOMERS/$FILTERED")
-    fun getCustomersFiltered(@Query(FILTER) filter: String?): Call<FilteredCustomerSerializer>
+    fun getCustomersFiltered(@Query(FILTER) filter: String?): Call<List<FilteredCustomerSerializer>>
 
     @GET("$INVOICES/$LATEST")
-    fun getLatestInvoices(): Call<InvoiceSerializer>
+    fun getLatestInvoices(): Call<List<InvoiceSerializer>>
 
     @GET("$INVOICES/$FILTERED")
-    fun getInvoicesFiltered(): Call<InvoiceSerializer>
+    fun getInvoicesFiltered(@Query(FILTER) filter: String?, @Query(PAGE) page: Int?): Call<List<InvoiceSerializer>>
 
     @GET("$INVOICES/$PAGE")
-    fun getInvoicesFilteredPage(): Call<Int>
+    fun getInvoicesFilteredPage(@Query(FILTER) filter: String?): Call<Int>
 
     @GET("$INVOICES/$ID_PARAM")
     fun getInvoice(@Path(ID) id: String): Call<InvoiceMinimalSerializer>

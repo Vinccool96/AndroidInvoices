@@ -7,9 +7,17 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-abstract class HttpCallback<T> : HttpArray(), Callback<T> {
+abstract class HttpCallback<T>(private val isVoid: Boolean) : HttpArray(), Callback<T> {
 
-    override fun onFailure(call: Call<T>, t: Throwable) {
+    final override fun onResponse(call: Call<T>, response: Response<T>) {
+        if (isSuccessful(response)) {
+            onSuccess(response.body()!!)
+        } else {
+            onError(response.code())
+        }
+    }
+
+    final override fun onFailure(call: Call<T>, t: Throwable) {
         fail(call, t)
     }
 
@@ -17,19 +25,19 @@ abstract class HttpCallback<T> : HttpArray(), Callback<T> {
         return call.also { call.enqueue(this) }
     }
 
-    fun error(code: Int, message: String) {
+    private fun error(code: Int, message: String) {
         Log.d(TAG, "Error: $code")
         exception(Exception(message))
     }
 
-    fun exception(throwable: Throwable) {
+    private fun exception(throwable: Throwable) {
         Log.e(TAG, "Error: ${throwable.message}")
         Log.e(TAG, "Error: ${throwable.cause}")
         Log.e(TAG, "Error: ${throwable.localizedMessage}")
         throwable.printStackTrace()
     }
 
-    fun fail(call: Call<T>, throwable: Throwable?) {
+    private fun fail(call: Call<T>, throwable: Throwable?) {
         if (call.isCanceled) {
             Log.e(TAG, "HttpClient did not receive request")
         }
@@ -37,7 +45,7 @@ abstract class HttpCallback<T> : HttpArray(), Callback<T> {
         throwable?.let { exception(it) }
     }
 
-    fun successful() {
+    private fun successful() {
         Log.d(TAG, SUCCESS)
     }
 
@@ -51,7 +59,7 @@ abstract class HttpCallback<T> : HttpArray(), Callback<T> {
         return hasErrors
     }
 
-    open fun isSuccessful(response: Response<*>, isVoid: Boolean): Boolean {
+    open fun isSuccessful(response: Response<*>): Boolean {
         if (hasErrors(response)) {
             error(response.code(), response.message())
         } else if (response.isSuccessful && isVoid == (response.body() == null)) {
@@ -65,6 +73,10 @@ abstract class HttpCallback<T> : HttpArray(), Callback<T> {
     protected fun toast(context: Context, message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
+
+    protected abstract fun onSuccess(serialized: T)
+
+    protected open fun onError(code: Int) {}
 
     companion object {
 
